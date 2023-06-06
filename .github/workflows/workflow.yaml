@@ -2,7 +2,7 @@ name: Deploy DEV
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ dev2 ]
 
 jobs:
   testing-changes:
