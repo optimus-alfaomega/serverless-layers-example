@@ -4,6 +4,10 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs14.x
+  apiGateway:
+    apiKeys:
+     - valida-api-s3-users-apikey
+    
   iam:
     role:
       statements:
@@ -15,7 +19,7 @@ provider:
           Resource: arn:aws:s3:::bucket-serverless-course-bucket-alex-reyes/*    
   environment:
    BUCKET: bucket-serverless-course-bucket-alex-reyes
-
+   SECRET_EGG: ${ssm:/SECRET_EGG}
 
 plugins:
   - serverless-dynamodb-local
@@ -28,13 +32,19 @@ layers:
 
 
 functions:
+  custom-authorizers:
+     handler: authorizer/handler.authorize
+     package: 
+        patterns:
+           - "authorizer/handler.js"
   function1:
      handler: index.handler
      layers:
       - { Ref: BaseLambdaLayer } 
-      - arn:aws:lambda:us-east-1:267352610200:layer:prod-dependencies:1
+      
      events:
       - http:
+          private: true
           path: users/{id}
           method: GET
           request:
@@ -63,6 +73,9 @@ functions:
     events:
       - http:
           path: users
+          authorizer:
+           name: custom-authorizers
+           resultTtlInSeconds: 15
           method: POST
           request:
             schemas:
